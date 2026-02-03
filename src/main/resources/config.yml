@@ -1,0 +1,5 @@
+# config.yml
+database:
+  url: jdbc:mysql://localhost/axplaytime
+  username: root
+  password: ""

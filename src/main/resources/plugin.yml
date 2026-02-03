@@ -2,3 +2,5 @@ name: AxPlayTime
 version: '1.0-SNAPSHOT'
 main: de.jauni.axplaytime.AxPlayTime
 api-version: '1.21'
+commands:
+  playtime:
