@@ -3,6 +3,10 @@ package de.jauni.axplaytime.manager;
 import de.jauni.axplaytime.AxPlayTime;
 import org.bukkit.entity.Player;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -33,9 +37,31 @@ public class PlayTimeManager {
     }
 
     public void savePlaytimeDB(Player p){
-        UUID uuid = p.getUniqueId();
-        long sessionTime = getDelta(p);
-        long currentTotal = playtime.getOrDefault(uuid, 0L);
-        playtime.put(uuid, currentTotal + sessionTime);
+        long totalSave = playtime.getOrDefault(p.getUniqueId(), 0L);
+        try(Connection conn = reference.getDatabaseManager().getConnection()){
+            try(PreparedStatement ps = conn.prepareStatement("REPLACE INTO players (uuid, playtime) VALUES (?, ?)")){
+                ps.setString(1, p.getUniqueId().toString());
+                ps.setLong(2, totalSave);
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public long loadPlayerPlaytime(UUID uuid){
+        try(Connection conn = reference.getDatabaseManager().getConnection()){
+            try(PreparedStatement ps = conn.prepareStatement("SELECT playtime FROM players WHERE uuid = ?")){
+                ps.setString(1, uuid.toString());
+                try(ResultSet rs = ps.executeQuery()){
+                    if(rs.next()){
+                        return rs.getLong("playtime");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return 0L;
     }
 }
